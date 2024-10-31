@@ -11,7 +11,7 @@ task 2
 
 (b) see pdf 
 
-(c) see C and Julia code attached
+(c) see C and Julia code attached (mainly C file, Julia more for proof of concept)
 
 (d, e) The energy in the higher order method (RK4) should be better conserved. 
 However, All our simulations seem quite comparable. The energy is conserved
