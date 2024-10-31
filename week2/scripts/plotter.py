@@ -10,8 +10,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-df_rk4 = pd.read_csv("../runs/run_RK2", delimiter="\t")
-df_rk2 = pd.read_csv("../runs/run_RK4", delimiter="\t")
+df_rk4 = pd.read_csv("../runs/run_RK4", delimiter="\t")
+df_rk2 = pd.read_csv("../runs/run_RK2", delimiter="\t")
 df_m = pd.read_csv("../runs/run_m", delimiter="\t")
 
 
@@ -105,7 +105,7 @@ def lines(x1, x2, y1, y2, N):
     ysp = k*xsp + q
     return (xsp, ysp)
 
-
+"""
 
 for i, _ in enumerate(x1_rk4[:]):
     plt.xlim(-3.5, 3.5)
@@ -125,5 +125,5 @@ for i, _ in enumerate(x1_rk4[:]):
     
     plt.savefig(f"../anim/frame_{i:05}.jpg", dpi=200)
     plt.clf()
-
+"""
     

@@ -209,8 +209,12 @@ double energy(struct sim_param* sim, struct pendulum* p,struct state_vector *X, 
         + 0.5 * p->m2 * ((p->L1 * K->phi1_dot)*(p->L1 * K->phi1_dot) + (p->L2 * K->phi2_dot)*(p->L2 * K->phi2_dot)
         + 2 * p->L1 * p->L2 * K->phi1_dot * K->phi2_dot * cos(X->phi1 - X->phi2));
     
+    //V = p->m1 * sim->g * p->L1 * (1 - cos(X->phi1))
+    //    + p->m2 * sim->g*(p->L1 *(1 - cos(X->phi1)) + p->L2*(1 - cos(X->phi2)) );
+
     V = p->m1 * sim->g * p->L1 * (1 - cos(X->phi1))
-        - p->m2 * sim->g*(p->L1 *(1 - cos(X->phi1)) + p->L2*(1 - cos(X->phi2)) );
+    + p->m2 * sim->g * (p->L1 * (1 - cos(X->phi1)) + p->L2 * (1 - cos(X->phi2)));
+
     
     return T + V;
 }
@@ -227,7 +231,7 @@ void simulation(struct sim_param* sim, struct pendulum* pend, struct state_vecto
     fprintf(file, "t\tphi1\tphi2\tq1\tq2\tE\n");
 
     while (sim->t < sim->total_T) {
-        RK2(sim, pend, X, &K);
+        midpoint(sim, pend, X, &K);
         E = energy(sim, pend, X, &K);
         pr_file(sim, X, E, file);
         printf("E  = %f\n", E);
