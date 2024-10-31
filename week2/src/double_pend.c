@@ -36,13 +36,13 @@ struct state_change {
 
 
 void init(struct sim_param* sim, struct pendulum* pend, struct state_vector* X) {
-    strncpy(sim->filename, "tmp", sizeof(sim->filename) - 1);
+    strncpy(sim->filename, "../runs/tmp", sizeof(sim->filename) - 1);
     sim->filename[sizeof(sim->filename) - 1] = '\0';
 
-    sim->g = 1;
+    sim->g = 1.0;
     sim->t = 0.0;
-    sim->h = 0.0001;
-    sim->total_T = 100.0;
+    sim->h = 0.05;
+    sim->total_T = 100;
 
     pend->L1 = 2.0;
     pend->L2 = 1.0;
@@ -83,13 +83,47 @@ void slope_of_state_vector(struct sim_param* sim, struct pendulum* p, struct sta
     K->phi1_dot = (X->q1 * p->m2 * p->L2 * p->L2 - X->q2 * p->m2 * p->L1 * p->L2 * cos_dif) / detM;
     K->phi2_dot = (-X->q1 * p->m2 * p->L1 * p->L2 * cos_dif + X->q2 * p->L1 * p->L1 * (p->m1 + p->m2)) / detM;
 
-    K->q1_dot = -2 * p->m2 * p->L1 * p->L2 * K->phi1_dot * K->phi2_dot*sin_dif 
+    K->q1_dot = - p->m2 * p->L1 * p->L2 * K->phi1_dot * K->phi2_dot*sin_dif 
         - sim->g * p->L1 * sin(X->phi1) * (p->m1 + p->m2);
-    K->q2_dot = +2 * p->m2 * p->L1 * p->L2 * K->phi1_dot * K->phi2_dot*sin_dif
+    K->q2_dot = +  p->m2 * p->L1 * p->L2 * K->phi1_dot * K->phi2_dot*sin_dif
         - sim->g * p->L2 * sin(X->phi2) * (p->m1 + p->m2);
 
 }
 
+
+
+void slope_of_state_vector_messed_up(struct sim_param* sim, struct pendulum* p, struct state_vector* X, struct state_change *K) {
+    double phi1_dot, phi2_dot;
+    double cos_dif, sin_dif, detM, A, B, pdpd;
+
+    cos_dif = cos(X->phi1 - X->phi2);
+    sin_dif = sin(X->phi1 - X->phi2);
+    A = p->m2 * p->L1 * p->L2 * cos_dif;
+    B = p->m2 * p->L2 * p->L2;
+
+    /*
+    detM = p->L1 * p->L2 * p->m2 * (p->m1+p->m2)
+        - (p->m2 * p->L1 * p->L2 * cos_dif)*(p->m2 * p->L1 * p->L2 * cos_dif);
+    */
+
+    detM =  B * p->F - A * A;
+    printf("%f\n",detM);
+
+    // phi_1 dot times phi_2 dot
+    pdpd = (A*B * X->q1 * X->q1 - A*p->F * X->q2 * X->q2 + (A*A - B*p->F)*X->q1*X->q2) / detM / detM;
+
+    K->phi1_dot = X->q1 / p->F - (A/B) * X->q2;
+    K->phi2_dot = (-A * X->q1 + p->F * X->q2)/detM;
+
+    //pdpd = K->phi1_dot * K->phi2_dot;
+    
+    K->q1_dot = -2 * p->m2 * p->L1 * p->L2 * pdpd * sin_dif 
+        - sim->g * p->L1 * sin(X->phi1) * (p->m1 + p->m2);
+    
+    K->q2_dot = +2 * p->m2 * p->L1 * p->L2 * pdpd * sin_dif
+        - p->m2 * sim->g * p->L2 * sin(X->phi2);
+
+}
 
 
 void midpoint(struct sim_param* sim, struct pendulum* pend, struct state_vector *X, struct state_change *K) {
@@ -193,7 +227,7 @@ void simulation(struct sim_param* sim, struct pendulum* pend, struct state_vecto
     fprintf(file, "t\tphi1\tphi2\tq1\tq2\tE\n");
 
     while (sim->t < sim->total_T) {
-        RK4(sim, pend, X, &K);
+        RK2(sim, pend, X, &K);
         E = energy(sim, pend, X, &K);
         pr_file(sim, X, E, file);
         printf("E  = %f\n", E);

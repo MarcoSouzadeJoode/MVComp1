@@ -10,10 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-df_rk4 = pd.read_csv("../runs/RUN_RK2", delimiter="\t")
-df_rk2 = pd.read_csv("../runs/RUN_RK4", delimiter="\t")
-df_m = pd.read_csv("../runs/RUN_midpoint", delimiter="\t")
-
+df_rk4 = pd.read_csv("../runs/run_RK2", delimiter="\t")
+df_rk2 = pd.read_csv("../runs/run_RK4", delimiter="\t")
+df_m = pd.read_csv("../runs/run_m", delimiter="\t")
 
 
 
@@ -82,7 +81,8 @@ plt.show()
 """
 
 
-
+plt.ylim(-3, 3)
+plt.xlim(-3,3)
 
 #plt.plot(x1_m, y1_m, label="PENDULUM 1", c="b")
 plt.plot(x2_m, y2_m, c="b", label="mid")
@@ -106,24 +106,24 @@ def lines(x1, x2, y1, y2, N):
     return (xsp, ysp)
 
 
-"""
-for i, _ in enumerate(x1[:]):
+
+for i, _ in enumerate(x1_rk4[:]):
     plt.xlim(-3.5, 3.5)
     plt.ylim(-3.5, 3.5)
     
     
     plt.scatter(0, 0, c="k")
-    plt.scatter(x1[i], y1[i], s=50,c="r",label="PENDULUM 1",zorder=10)
-    plt.scatter(x2[i], y2[i], s=150,c="b",label="PENDULUM 2",zorder=10)
+    plt.scatter(x1_rk4[i], y1_rk4[i], s=50,c="r",label="PENDULUM 1",zorder=10)
+    plt.scatter(x2_rk4[i], y2_rk4[i], s=150,c="b",label="PENDULUM 2",zorder=10)
     
-    xspA, yspA = lines(0, x1[i], 0, y1[i], 100)
+    xspA, yspA = lines(0, x1_rk4[i], 0, y1_rk4[i], 100)
     plt.plot(xspA, yspA, c="k")
     
-    xspB, yspB = lines(x1[i], x2[i], y1[i], y2[i], 100)
+    xspB, yspB = lines(x1_rk4[i], x2_rk4[i], y1_rk4[i], y2_rk4[i], 100)
     plt.plot(xspB, yspB, c="blue",zorder=-1)
     plt.plot(xspA, yspA, c="k",zorder=-5)
     
-    plt.savefig(f"anim/frame_{i:05}.jpg", dpi=100)
+    plt.savefig(f"../anim/frame_{i:05}.jpg", dpi=200)
     plt.clf()
-"""
+
     
