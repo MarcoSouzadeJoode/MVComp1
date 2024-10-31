@@ -59,12 +59,25 @@ function rk4(x,p,t,h)
     return x
 end
 
+function energy(x1,y1,x2,y2,p,timerange)
+    m1,m2,l1,l2, g= p
+    E = zeros(length(timerange))
+    for t in 2:length(timerange)
+        kinetic = 1/2*( ((x1[t-1]-x1[t])/h)^2 + ((y1[t-1]-y1[t])/h)^2 + ((x2[t-1]-x2[t])/h)^2 + ((y2[t-1]-y2[t])/h)^2)
+        potential = - m1*g*y1[t] - m2 * g*y2[t]
+        E[t] = kinetic + potential
+        if t == 2 
+            E0 = E[t]
+        end
+    end 
+    return E, E0
+end
 
 x0 = [rad(50), rad(-120),0,0]
 
 m1,m2,l1,l2,g = 0.5, 1.0,2.0,1.0,1.0
 
-p = [m1,m2,l1,l2,g]
+params = [m1,m2,l1,l2,g]
 
 h = 0.05
 
@@ -82,7 +95,7 @@ phi1_arr[1],phi2_arr[1],q1_arr[1],q2_arr[1] = x0
 
 for i in 2:timesteps
     old_state = [phi1_arr[i-1],phi2_arr[i-1],q1_arr[i-1],q2_arr[i-1]]
-    new_state = rk4(old_state,p,t_range[i],h)
+    new_state = rk4(old_state,params,t_range[i],h)
     phi1_arr[i],phi2_arr[i],q1_arr[i],q2_arr[i] = new_state
 end
 
@@ -93,3 +106,10 @@ x1,y1,x2,y2 = to_xy(phi1_arr,phi2_arr)
 p = plot(x1,y1)
 plot!(p,x2,y2)
 display(p)
+
+E,E0 = energy(x1,y1,x2,y2,params,t_range)
+
+E = abs.(E.-E0)./E0
+
+pE = plot(t_range,E)
+display(pE)
