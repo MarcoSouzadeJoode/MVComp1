@@ -1,0 +1,6 @@
+#include <stdio.h>
+
+int i = 7;
+float x = 2*(i/2);
+float y = 2*(i/2.);
+printf("%e %e \n", y,z);
