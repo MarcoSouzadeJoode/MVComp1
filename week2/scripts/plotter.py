@@ -10,9 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-df_rk4 = pd.read_csv("RUN_RK2", delimiter="\t")
-df_rk2 = pd.read_csv("RUN_RK4", delimiter="\t")
-df_m = pd.read_csv("RUN_midpoint", delimiter="\t")
+df_rk4 = pd.read_csv("../runs/RUN_RK2", delimiter="\t")
+df_rk2 = pd.read_csv("../runs/RUN_RK4", delimiter="\t")
+df_m = pd.read_csv("../runs/RUN_midpoint", delimiter="\t")
 
 
 
