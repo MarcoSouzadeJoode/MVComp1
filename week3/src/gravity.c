@@ -274,11 +274,11 @@ void energy(simulation* S) {
 }
 
 void angular_momentum(simulation* S) {
-    double L = 0;
+    V3 L = {0.0, 0.0, 0.0};
     for (int i = 0; i < N; i++) {
-        L+= S->particles[i].m * v_mag( v_cross (S->particles[i].r, S->particles[i].v));
+        L = v_add (L, v_scale( v_cross (S->particles[i].r, S->particles[i].v), S->particles[i].m )) ;
     }
-    S->parameters.angular_momentum = L;
+    S->parameters.angular_momentum = v_mag(L);
 }
 
 
@@ -290,7 +290,7 @@ void simulate(simulation* S) {
     
     while (S->parameters.t < S->parameters.total_T) {
         pr_step(S, file);
-        midpoint_step(S);
+        velocity_verlet(S);
         energy(S);
         angular_momentum(S);
         S->parameters.t += S->parameters.h;
