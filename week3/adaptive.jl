@@ -71,7 +71,7 @@ m1,m2,l1,l2,g = 0.5, 1.0,2.0,1.0,1.0
 
 params = [m1,m2,l1,l2,g]
 
-h = 0.05 # 1e-4
+h = 0.01 # 1e-4
 h_max = h
 t_max = 100
 
@@ -96,7 +96,7 @@ E0 = energy(phi1_arr[1],phi2_arr[1],0,0,params)
 println(E0)
 push!(E,E0)
 
-epsilon = 1e-4
+epsilon = 1e-8
 
 reduce_factor = 0.5
 increase_factor = 1.2
@@ -166,5 +166,5 @@ fig = plot(
 
 #savefig(fig,"adaptive$epsilon+red.png")
 #savefig(fig,"adaptive$epsilon+lowstart.png")
-savefig(fig,"adaptive$epsilon+prev.png")
+savefig(fig,"adaptive$epsilon+prev_lowstart.png")
 #savefig(fig,"plots_adaptive/not_adaptive_$h+_h.png")
