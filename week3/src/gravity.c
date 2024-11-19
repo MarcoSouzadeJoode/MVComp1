@@ -50,6 +50,7 @@ void calculate_accelerations (simulation* S) {
 
                 assert(dist > 1e-14);
 
+                // changer sign!!
                 prefactor = - S->parameters.G * S->particles[j].m  / (dist * dist * dist);
                 acc_contribution = v_scale(diff, prefactor / S->particles[i].m);
                 //printf("%f\n", acc_contribution.x);
@@ -86,7 +87,37 @@ void init (simulation* S) {
         S->particles[i].a = (V3){0.0, 0.0, 0.0};
     };
 
+}
 
+
+void init2(simulation *S) {
+    S->parameters.G = 1.0;
+    strcpy(S->parameters.filename, "runs/tmp");
+    S->parameters.t = 0.0;
+    S->parameters.total_T = 7.0;
+    S->parameters.h = 1e-4;
+
+    S->particles[0].r = (V3){0.0, 0.0, 0.0};
+    S->particles[1].r = (V3){0.0, 1.0, 0.0};
+    S->particles[2].r = (V3){0.0, 2.0, 0.0};
+    S->particles[3].r = (V3){0.0, 3.0, 0.0};
+
+
+    S->particles[0].m = 1000.0;
+    S->particles[1].m = 1.0;
+    S->particles[2].m = 10.0;
+    S->particles[3].m = 1.0;
+
+
+    S->particles[0].v = (V3){0.0, 0.0, 0.0};
+    S->particles[1].v = (V3){3.0, 0.0, 0.0};
+    S->particles[2].v = (V3){2.0, 0.0, 0.0};
+    S->particles[3].v = (V3){1.0, 0.0, 0.0};
+
+
+    for (int i = 0; i < N; i++) {
+        S->particles[i].a = (V3){0.0, 0.0, 0.0};
+    };
 
 }
 
@@ -178,8 +209,7 @@ void midpoint_step(simulation* S) {
 
 }
 
-
-void RK4_step(simulation* S) {
+void RK4_step_aa(simulation* S) {
     particle k1[N], k2[N], k3[N], k4[N], tmp[N];
     particle two_k2[N], two_k3[N];
 
@@ -253,17 +283,76 @@ void RK4_step(simulation* S) {
 
 }
 
+void RK4_step(simulation* S) {
+    particle k1[N], k2[N], k3[N], k4[N], initial[N];
+    double h = S->parameters.h;
+
+    // Store initial positions and velocities for later restoration
+    for (int i = 0; i < N; i++) {
+        initial[i].r = S->particles[i].r;
+        initial[i].v = S->particles[i].v;
+    }
+
+    // Step 1: Calculate k1
+    calculate_accelerations(S);
+    for (int i = 0; i < N; i++) {
+        k1[i].v = S->particles[i].v;
+        k1[i].a = S->particles[i].a;
+
+        // Update temporary position and velocity for k2 calculation
+        S->particles[i].r = v_add(initial[i].r, v_scale(k1[i].v, 0.5 * h));
+        S->particles[i].v = v_add(initial[i].v, v_scale(k1[i].a, 0.5 * h));
+    }
+
+    // Step 2: Calculate k2
+    calculate_accelerations(S);
+    for (int i = 0; i < N; i++) {
+        k2[i].v = S->particles[i].v;
+        k2[i].a = S->particles[i].a;
+
+        // Update temporary position and velocity for k3 calculation
+        S->particles[i].r = v_add(initial[i].r, v_scale(k2[i].v, 0.5 * h));
+        S->particles[i].v = v_add(initial[i].v, v_scale(k2[i].a, 0.5 * h));
+    }
+
+    // Step 3: Calculate k3
+    calculate_accelerations(S);
+    for (int i = 0; i < N; i++) {
+        k3[i].v = S->particles[i].v;
+        k3[i].a = S->particles[i].a;
+
+        // Update temporary position and velocity for k4 calculation
+        S->particles[i].r = v_add(initial[i].r, v_scale(k3[i].v, h));
+        S->particles[i].v = v_add(initial[i].v, v_scale(k3[i].a, h));
+    }
+
+    // Step 4: Calculate k4
+    calculate_accelerations(S);
+    for (int i = 0; i < N; i++) {
+        k4[i].v = S->particles[i].v;
+        k4[i].a = S->particles[i].a;
+
+        // Final position and velocity update using weighted sum of slopes
+        S->particles[i].r = v_add(initial[i].r, 
+            v_scale(v_add(k1[i].v, v_add(v_scale(k2[i].v, 2.0), v_add(v_scale(k3[i].v, 2.0), k4[i].v))), h / 6.0));
+        
+        S->particles[i].v = v_add(initial[i].v, 
+            v_scale(v_add(k1[i].a, v_add(v_scale(k2[i].a, 2.0), v_add(v_scale(k3[i].a, 2.0), k4[i].a))), h / 6.0));
+    }
+}
+
+
 void energy(simulation* S) {
     double EK = 0, EP = 0;
 
     for (int i = 0; i < N; i++) {
-        EK += 0.5 * S->particles[i].m * v_dot(S->particles[i].v, S->particles[i].v);
+        EK += 0.5 * S->particles[i].m * v_mag(S->particles[i].v) * v_mag(S->particles[i].v) ;
     }
 
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             if (j > i) {
-                EP += S->parameters.G * S->particles[i].m * S->particles[j].m /
+                EP += (-S->parameters.G * S->particles[i].m * S->particles[j].m) /
                  (v_mag(v_subtract(S->particles[i].r, S->particles[j].r)));
             }
         }
@@ -289,10 +378,11 @@ void simulate(simulation* S) {
     pr_header(file);
     
     while (S->parameters.t < S->parameters.total_T) {
-        pr_step(S, file);
-        velocity_verlet(S);
+        RK4_step(S);
         energy(S);
         angular_momentum(S);
+        pr_step(S, file);
+
         S->parameters.t += S->parameters.h;
     }
 
