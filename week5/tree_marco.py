@@ -15,11 +15,16 @@ import matplotlib.pyplot as plt
 
 
 # critical opening angle and smoothing length
-theta_crit = 0.6
+theta_crit = 0.8
 eps=0.01
 
+
+print("theta_crit: ",theta_crit)
 # number of particles
 Npart=1000
+print("NPART: ", Npart)
+
+interactions = 0
 
 # class for particle
 class Particle:
@@ -133,10 +138,12 @@ class Node:
               Checks for the mass as a proxy for where tree exists.
         '''
         global N_tree_computations
+        global interactions
         
         acc = np.zeros((3))
 
         if self.mass > 0.0:
+            interactions += 1
             
             theta = self.get_opening_angle(pos)
             
@@ -255,12 +262,13 @@ stop_time_tree = time.time()
 # do the exact acceleration via direct summation
 
 start_time_sum = time.time()
-
 # TO BE FILLED IN: EXACT SUMMATION
 #
+dirsum = 0
 
 for i in range(len(p)):
     for j in range(i+1, len(p)):
+        dirsum += 1
         ptemp = np.zeros((3))
 
         
@@ -279,26 +287,29 @@ for i in range(len(p)):
         p[j].acc_exact[0] += -ptemp[0]
         p[j].acc_exact[1] += -ptemp[1]
         p[j].acc_exact[2] += -ptemp[2]
+stop_time_sum = time.time()
+
+# compute error
 
 etas = []
 
 for part in p:
     eta = np.linalg.norm(-part.acc_exact + part.acc_tree) / np.linalg.norm(part.acc_exact)
-    print(eta)
+    #print(eta)
     etas.append(eta)
 
 plt.plot(etas, c="k", linewidth=1)
-plt.hlines(np.mean(np.array(etas), axis=0), 0, len(p), label=f"mean: {np.mean(np.array(etas), axis=0):.2f}")
+plt.hlines(np.mean(np.array(etas), axis=0), 0, len(p), label=f"mean: {np.mean(np.array(etas), axis=0):.4f}")
 plt.legend()
 plt.ylabel("ETA")
 plt.xlabel("particle #")
 plt.show()
 
-stop_time_sum = time.time()
 
 print("timing")
 print("tree      :", stop_time_tree - start_time_tree)
 print("summation :", stop_time_sum - start_time_sum)
+print(f"mean err : {np.mean(np.array(etas), axis=0):.4f}")
 
 xae = []
 xat = []
@@ -306,17 +317,14 @@ for i, part in enumerate(p):
     xat.append(np.linalg.norm(part.acc_tree))
     xae.append(np.linalg.norm(part.acc_exact))
     
-plt.plot(xae, linewidth=1, alpha=1, label="exact")
-plt.plot(xat, linewidth=1, alpha=1, label="tree")
+plt.plot(xae, linewidth=3, alpha=0.3,c="k", label="exact")
+plt.plot(xat, linewidth=0.5, alpha=0.5,c="r", label="tree")
 plt.xlabel("particle #")
 plt.legend()
-plt.ylabel("x acceleration")
+plt.ylabel("mag. acceleration")
 plt.show()
 
 
-# compute error
-
-err_sum = 0.0
-# TO BE FILLED IN
-#
-
+## INTERACTION SUM
+print("INTERACTIONS TREE: ", interactions)
+print("INTERACTIONS DIRECT SUM: ", dirsum)
