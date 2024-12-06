@@ -39,9 +39,9 @@ phi4 = data4[:, 1]
 # Create the plot
 plt.figure(figsize=(8, 6))
 plt.plot(x, phi, label=r'$\Phi(x)$, 100', color='blue', linewidth=2)
-plt.plot(x3, phi3, label=r'$\Phi(x)$, LU decomp, 100', color='green', linewidth=5, alpha=0.5)
+plt.plot(x3, phi3, label=r'$\Phi(x)$, LU decomp, 100', color='blue', linewidth=5, alpha=0.3)
 plt.plot(x2, phi2, label=r'$\Phi(x)$, 10000', color='red', linewidth=2)
-plt.plot(x4, phi4, label=r'$\Phi(x)$, LU decomp, 10000', color='green', linewidth=5, alpha=0.5)
+plt.plot(x4, phi4, label=r'$\Phi(x)$, LU decomp, 10000', color='red', linewidth=5, alpha=0.3)
 
 
 # Label the axes and the plot
